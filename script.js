@@ -1,113 +1,64 @@
 // JavaScript source code
 
-import { Rodent, Stats } from './rod.js';
-import { Text, TextBox, Button, HPText } from './textual.js';
-import { bite } from './moves.js';
-import { wait, waitL, nextClick, debugMouse, KeyHandler } from './tools.js';
+//TODO: add bleed bar to hp
+//maybe add bleed text
 
+import { Rodent, Stats } from './rod.js';
+import {SolidTextBox} from './textual.js';
+import {Drawings, IMG} from './images.js';
+import {KeyHandler } from './utils.js';
+import {shadyRoach} from './roach.js';
+import {battle} from './battle.js';
+import {cr} from './config.js';
 
 let c = document.getElementById("myCanvas");
 var ctx = c.getContext("2d");
-//var clickables = [];
-
 
 let k = new KeyHandler (document);
 
-async function battle(player, enemy, pHPText, eHPText, mainText, context) {
-  //get all players moves, make them into button
-  let buttons = [];
-  let i = 0;
-  player.moveList.forEach(move =>
-    {
-      let nB = new Button(`${move.title}: ${move.tempoCost}T`, 20 + 190 * (i%2), 200 + 60 * Math.floor(i / 2), ctx, '#AA0000');
-      nB.action = move;
-      buttons.push(nB);
-      i++;
-    });
-  //var b = new Button("Bite", 100, 200, ctx, '#FF0011');
-  player.reset();
-  enemy.reset();
-  let pT = player.dex;
-  let eT = enemy.dex;
-  while (player.hp > 0 && enemy.hp > 0) {
-    if (player.isTurn) {
-      mainText.change("Your turn...");
-      pT += player.end;
-      //wait for click
-      var clickedMove = undefined;
-      while (!clickedMove) {
-        let [mouseX, mouseY] = await nextClick(c);
-        buttons.forEach(b =>
-        {
-          if (b.checkClick(mouseX, mouseY))
-          {
-            if (k.ctrl)
-            {
-              mainText.change(b.action.description);
-            }
-            else
-            {
-              clickedMove = b.action;
-            }
-          }
-        });
-      }
-      let result = clickedMove(player, enemy);
-      pT -= clickedMove.tempoCost;
-      mainText.change(result);
-      pHPText.update();
-      eHPText.update();
-      enemy.isTurn = true;
-      player.isTurn = false;
-      await waitL(result);
-    }
-    else {
-      mainText.change(enemy.name + "'s turn...");
-      eT += enemy.end;
+async function startGame ()
+{
+  let bg = new IMG('assets/forest.png', -40*cr, -80*cr, 1050*cr, ctx);
+  let m = new SolidTextBox("", 0, 0, ctx, 800*cr, 60*cr, "#000", '#FFF', true, 0.85, 0.6, 2*cr);
+  let drawings = new Drawings(ctx, bg, m);
+  drawings.draw();
 
-      await wait(1000);
-      let result = bite(enemy, player);
-      eT -= clickedMove.tempoCost;
-      mainText.change(result);
-      pHPText.update();
-      eHPText.update();
-      await waitL(result);
-      enemy.isTurn = false;
-      player.isTurn = true;
-      //break;
-    }
-  }
-  let victor = (player.hp > enemy.hp ? player : enemy);
-  if (victor == player) {
-    mainText.change(`You beat ${enemy.name}!`);
-  }
-  else {
-    mainText.change(`You lost the fight to ${enemy.name}.`);
-  }
+  var rat = new Rodent("Lenny", "Mouse", new Stats(50, 50, 50, 50, 50, 50), true);
+  var horse = new Rodent("Thomas", "Rat", new Stats(50, 50, 50, 50, 30, 50));
+  rat.sprite = new IMG("assets/mouse_hero.png", 110*cr, 110*cr, 115*cr, ctx, "Lenny", "#222");
+  horse.sprite = new IMG("assets/rat_enemy1.png", 470*cr, 65*cr, 150*cr, ctx, "Thomas", "#A02");
+  rat.isTurn = true;
+  horse.isTurn = false;
 
+  await shadyRoach(rat, m, ctx, c, drawings);
+  await battle(rat, horse, m, ctx, c, drawings);
 }
-
-
-
-document.addEventListener('keyup', function (event) {
-  if (event.keyCode == 32) {
+startGame();
+document.addEventListener('keyup', async function (event) {
+  if (event.code == 'Space') {
     //var b = new Button("Bite", 200, 210, ctx, "#FF0055", 200, 100);
 
     //clickables.push(b);
+    
 
     var rat = new Rodent("Lenny", "Mouse", new Stats(50, 50, 50, 50, 50, 50), true);
+    var horse = new Rodent("Thomas", "Rat", new Stats(50, 50, 50, 50, 30, 50));
+    rat.sprite = new IMG("assets/mouse_hero.png", 110*cr, 110*cr, 115*cr, ctx, "Lenny", "#222");
+    horse.sprite = new IMG("assets/rat_enemy1.png", 470*cr, 65*cr, 150*cr, ctx, "Thomas", "#A02");
     rat.isTurn = true;
-    var horse = new Rodent("Thomas", "Horse", new Stats(30, 40, 50, 50, 50, 50));
     horse.isTurn = false;
 
-    var t = new HPText(rat, 60, 25, ctx, 20, "Arial", "#AA0033");
-    var y = new HPText(horse, 540, 25, ctx, 20, "Arial", "#AA0011");
+    console.log('battle!');
 
-    rat.hpText = t;
-    horse.hpText = y;
-
-    let m = new TextBox("", 25, 470, ctx, 760, 30, "#444");
-
-    battle(rat, horse, t, y, m, ctx);
+    battle(rat, horse, m, ctx, c, drawings);
+  }
+  if (event.code == 'KeyF')
+  {
+    var rat = new Rodent("Lenny", "Mouse", new Stats(50, 50, 50, 50, 50, 50), true);
+    rat.sprite = new IMG("assets/mouse_hero.png", 110*cr, 110*cr, 150*cr, ctx, "Lenny", "#444");
+    
+    
+    shadyRoach(rat, m, ctx, c, drawings);
+ 
   }
 }, { once: true });

@@ -16,78 +16,112 @@ function checkHit(accuracy, missChance, critChance, critDamage = 2)
   }
 }
 
-export function bite (user, enemy) {
+export function punch (user, enemy) {
   if (user == 0)
   {
-    bite.title = "Bite";
-    bite.description = "A normal bite move.";
-    bite.tempoCost = 10;
-    return bite;
+    punch.title = "Punch";
+    punch.description = "Deals damage equivalent to your strenth. 5% chance to both miss and crit.";
+    punch.stam = 20;
+    return punch;
   } else {
-	let dmg = Math.floor(1*user.str);
- 	let x = Math.floor(checkHit(user.acc, 0.05, 0.05, 2));
-  enemy.damage(dmg * x);
+	let dmg = 1*user.str;
+  let x = checkHit(user.acc, 0.05, 0.05, 2);
+  dmg = Math.round(dmg*x);
   if (x == 0)
   {
-    return (user.name +  " missed.");
+    punch.result = (user.name +  " missed.");
   }
-  if (x == 1)
+  else if (x == 1)
   {
-    return (user.name + " bites " + enemy.name + ", dealing " + dmg + "dmg.");
+    punch.result = (user.name + " punches " + enemy.name + ", dealing " + dmg + "dmg.");
   }
   else
   {
-    return (`Critical hit! ${user.name} sinks their teeth into ${enemy.name}, dealing ${dmg*x} dmg.`);
+    punch.result = (`Critical hit! ${user.name} wallops ${enemy.name}, dealing ${dmg} dmg.`);
   }
+  return dmg;
 }}
 export function claw (user, enemy) {
   if (user == 0)
   {
     claw.title = "Claw";
-    claw.description = "A weaker, but less tempo exhaustive move.";
-    claw.tempoCost = 5;
+    claw.description = "Combo (This move does not end your turn). Deals 50% damage, 5% chance to miss, 1% chance to crit.";
+    claw.stam = 10;
+    claw.combo = true;
     return claw;
   } else {
-	let dmg = Math.floor(0.65*user.str);
- 	let x = Math.floor(checkHit(user.acc, 0.05, 0.05, 2));
-  enemy.damage(dmg * x);
+	let dmg = 0.5*user.str;
+  let x = checkHit(user.acc, 0.05, 0.01, 2);
+  dmg = Math.round(dmg*x);
   if (x == 0)
   {
-    return (user.name +  " missed.");
+    claw.result = (user.name +  " missed.");
   }
-  if (x == 1)
+  else if (x == 1)
   {
-    return (user.name + " claws " + enemy.name + ", dealing " + dmg + "dmg.");
+    claw.result = (user.name + " claws " + enemy.name + ", dealing " + dmg + "dmg.");
   }
   else
   {
-    return (`Critical hit! ${user.name} slashes ${enemy.name}'s neck with sharp claws, dealing ${dmg*x} dmg.`);
+    claw.result = (`Critical hit! ${user.name} slashes ${enemy.name}'s neck with sharp claws, dealing ${dmg} dmg.`);
   }
+  return dmg;
 }}
 export function tailWhip (user, enemy) {
   if (user == 0)
   {
     tailWhip.title = "Tail Whip";
-    tailWhip.description = "A quick, low damage move which uses zero tempo. Has a high chance to miss. Has a low chance to crit.";
-    tailWhip.tempoCost = 0;
+    tailWhip.description = "A quick, low damage move. Deals 15% damage. Cannot miss or crit.";
+    tailWhip.stam = 1;
     return tailWhip;
   } else {
-	let dmg = Math.floor(0.2*user.str);
- 	let x = Math.floor(checkHit(user.acc, 0.2, 0.05, 2));
-  enemy.damage(dmg * x);
+	let dmg = 0.15*user.str;
+  let x = checkHit(user.acc, 0.0, 0.0, 2);
+  dmg = Math.round(dmg*x);
   if (x == 0)
   {
-    return (user.name +  " missed.");
+    tailWhip.result = (user.name +  " missed.");
   }
   if (x == 1)
   {
-    return (user.name + " whips " + enemy.name + ", dealing " + dmg + "dmg.");
+    tailWhip.result = (user.name + " whips " + enemy.name + ", dealing " + dmg + "dmg.");
   }
   else
   {
-    return (`Critical hit! ${user.name} lashes ${enemy.name} with their tail, dealing ${dmg*x} dmg.`);
+    tailWhip.result = (`Critical hit! ${user.name} lashes ${enemy.name} with their tail, dealing ${dmg} dmg.`);
   }
+  return dmg;
 }}
-bite(0, 0);
+export function bite (user, enemy) {
+  if (user == 0)
+  {
+    bite.title = "Bite";
+    bite.description = "Bleed 10 (This move inflicts [10] extra damage to the opponent every time they take damage. Reduced by 1 at the end of your turn). Deals 100% damage."
+    bite.stam = 35;
+    bite.bleed = 10;
+    return bite;
+  }
+  let dmg = 1*user.str;
+  let x = checkHit(user.acc, 0.05, 0.05, 2);
+  dmg = Math.round(dmg * x);
+  if (x == 0)
+  {
+    bite.result = (`${user.name} missed.`);
+  }
+  else if (x == 1)
+  {
+    enemy.effects.applyBleed(bite.bleed);
+    bite.result = (`${user.name} bites ${enemy.name}, dealing  ${dmg}dmg. ${enemy.name} has ${enemy.effects.bleed} Bleed.`);
+  }
+  else
+  {
+    enemy.effects.applyBleed(bite.bleed);
+    bite.result = (`Critical hit! ${user.name} sinks their teeth into ${enemy.name}, dealing ${dmg} dmg. ${enemy.name} has ${enemy.effects.bleed} Bleed.`);
+  }
+  return dmg;
+}
+
+punch(0, 0);
 claw(0, 0);
 tailWhip(0, 0);
+bite(0,0);

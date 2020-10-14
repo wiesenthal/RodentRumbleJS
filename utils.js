@@ -1,4 +1,5 @@
-// JavaScript source code
+import {readingTime} from './config.js'
+
 export function wait(x) {
 	return new Promise(resolve => {
 		setTimeout(() => {
@@ -12,9 +13,14 @@ export function waitL(x) {
 	return new Promise(resolve => {
 		setTimeout(() => {
 			resolve(true);
-		}, (60*x.length));
+		}, (readingTime*x.length));
 	}
 	);
+}
+export async function mainChange(newText, mainText, drawings) {
+	mainText.change(newText);
+	await drawings.update();
+	await waitL(newText);
 }
 
 export class KeyHandler {
@@ -46,10 +52,21 @@ export async function debugMouse() {
 
 export function nextClick(canvas) {
 	return new Promise((resolve) =>
+	{
 	canvas.addEventListener('click', function (e) {
 	  let rect = canvas.getBoundingClientRect();
 	  let x = e.clientX - rect.left;
 	  let y = e.clientY - rect.top;
-	  resolve([x, y]);
-	}, { once: true }));
+	  resolve(['l', x, y]);
+	}, { once: true });
+	canvas.addEventListener('contextmenu', function (e)
+	{
+		e.preventDefault();
+		let rect = canvas.getBoundingClientRect();
+		let x = e.clientX - rect.left;
+		let y = e.clientY - rect.top;
+		resolve(['r', x, y]);
+	}, {once: true});
+	}
+	);
 }
