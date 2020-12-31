@@ -8,6 +8,7 @@ Engage in combat vs AI controlled opponents.
 Pick a move, balancing damage and attributes with the stamina cost of the attack.
 Opponent attacks back.
 Rewarded with XP
+![](screenshots/fight.PNG)
 ## Progression
 XP can be used to upgrade stats or learn new moves
 
